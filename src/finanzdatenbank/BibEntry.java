@@ -69,8 +69,8 @@ public class BibEntry {
 			Integer val = this.months[i];
 			v.add(val);
 		}
-		v.add(null);
 		v.add(this.other);
+		v.add(null);
 		v.add(this.id);
 		return v;
 	}

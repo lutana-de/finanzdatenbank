@@ -27,6 +27,7 @@ import javax.swing.table.TableColumnModel;
 import finanzdatenbank.BibDatabase;
 import finanzdatenbank.BibEntry;
 import finanzdatenbank.BibUserException;
+import java.awt.print.PrinterException;
 import java.time.Year;
 import java.util.Vector;
 import javax.swing.JFrame;
@@ -72,8 +73,7 @@ public class BibGUI2 extends javax.swing.JFrame implements ListSelectionListener
         dataMenu = new javax.swing.JMenu();
         yearMenu = new javax.swing.JMenu();
         jSeparator2 = new javax.swing.JPopupMenu.Separator();
-        readOnlyItem = new javax.swing.JCheckBoxMenuItem();
-        jSeparator4 = new javax.swing.JPopupMenu.Separator();
+        printDataItem = new javax.swing.JMenuItem();
         exportDataItem = new javax.swing.JMenuItem();
 
         editCellField.setBackground(Color.getHSBColor(50, 25, 100));
@@ -201,17 +201,15 @@ public class BibGUI2 extends javax.swing.JFrame implements ListSelectionListener
         dataMenu.add(yearMenu);
         dataMenu.add(jSeparator2);
 
-        readOnlyItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F3, 0));
-        readOnlyItem.setSelected(true);
-        readOnlyItem.setText("Schreibschutz");
-        readOnlyItem.setIcon(new javax.swing.ImageIcon(getClass().getResource("/finanzdatenbank/resources/lock.png"))); // NOI18N
-        readOnlyItem.addActionListener(new java.awt.event.ActionListener() {
+        printDataItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_P, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        printDataItem.setIcon(new javax.swing.ImageIcon(getClass().getResource("/finanzdatenbank/resources/printer.png"))); // NOI18N
+        printDataItem.setText("Drucken");
+        printDataItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                readOnlyItemActionPerformed(evt);
+                printDataItemActionPerformed(evt);
             }
         });
-        dataMenu.add(readOnlyItem);
-        dataMenu.add(jSeparator4);
+        dataMenu.add(printDataItem);
 
         exportDataItem.setIcon(new javax.swing.ImageIcon(getClass().getResource("/finanzdatenbank/resources/db_save.png"))); // NOI18N
         exportDataItem.setText("Sicherung");
@@ -279,14 +277,6 @@ public class BibGUI2 extends javax.swing.JFrame implements ListSelectionListener
 		this.quit();
     }//GEN-LAST:event_formWindowClosed
 
-    private void exportDataItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exportDataItemActionPerformed
-		this.doExport();
-    }//GEN-LAST:event_exportDataItemActionPerformed
-
-    private void readOnlyItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_readOnlyItemActionPerformed
-        this.updateUI();
-    }//GEN-LAST:event_readOnlyItemActionPerformed
-
     private void queryTxtKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_queryTxtKeyReleased
         this.reloadData();
     }//GEN-LAST:event_queryTxtKeyReleased
@@ -311,6 +301,18 @@ public class BibGUI2 extends javax.swing.JFrame implements ListSelectionListener
 			this.reloadData();
 		}
     }//GEN-LAST:event_newBtnActionPerformed
+
+    private void printDataItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_printDataItemActionPerformed
+        try {
+			this.dataTable.print();
+		} catch(PrinterException e) {
+			JOptionPane.showMessageDialog(this, e.getMessage(), "Drucken nicht möglich", JOptionPane.ERROR_MESSAGE);
+		}
+    }//GEN-LAST:event_printDataItemActionPerformed
+
+    private void exportDataItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exportDataItemActionPerformed
+        this.doExport();
+    }//GEN-LAST:event_exportDataItemActionPerformed
 
 	private void requestAutoBackupLocation() {
 		String setting = "auto-backup-dir";
@@ -378,7 +380,7 @@ public class BibGUI2 extends javax.swing.JFrame implements ListSelectionListener
 	}
     
 	private void updateUI() {
-		if (!this.readOnlyItem.isSelected() && this.dataTable.getSelectedRowCount() > 0 && this.dataTable.getRowSelectionAllowed()) {
+		if (this.dataTable.getSelectedRowCount() > 0 && this.dataTable.getRowSelectionAllowed()) {
 			int[] rows = this.dataTable.getSelectedRows();
 			if (rows.length == 1 && rows[0] == this.dataTable.getModel().getRowCount()-1) {
 				this.deleteBtn.setEnabled(false);
@@ -392,8 +394,16 @@ public class BibGUI2 extends javax.swing.JFrame implements ListSelectionListener
 		this.updateTitle();
 	}
 	
+	public String getTableTitle() {
+		return "Rechnungen ("+this.year+")";
+	}
+	
 	private void updateTitle() {
 		this.setTitle(this.title + " - Jahr: " + this.year);
+		if(this.dataTable != null) {
+			this.dataTable.getColumnModel().getColumn(BibTableModel.TITLE_COL).setHeaderValue(this.getTableTitle());
+			this.dataTable.getTableHeader().repaint();
+		}
 	}
 	
 	private JRadioButtonMenuItem createFontSizeSubItem(Integer value, boolean selected) {
@@ -466,16 +476,7 @@ public class BibGUI2 extends javax.swing.JFrame implements ListSelectionListener
 		}
 	}
 	
-	public boolean isReadOnly() {
-		return readOnlyItem.isSelected();
-	}
-	
 	private void delete() {
-		if (this.isReadOnly()) {
-			JOptionPane.showMessageDialog(this, "Um einen Eintrag zu löschen muss der Schreibschutz aufheben werden.");
-			return;
-		}
-		
 		int count = this.dataTable.getSelectedRowCount();
 		if (count == 0) {
 			JOptionPane.showMessageDialog(this, "Bitte den zu löschenden Eintrag in der Tabelle auswählen.");
@@ -593,13 +594,12 @@ public class BibGUI2 extends javax.swing.JFrame implements ListSelectionListener
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JPopupMenu.Separator jSeparator2;
-    private javax.swing.JPopupMenu.Separator jSeparator4;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JButton newBtn;
+    private javax.swing.JMenuItem printDataItem;
     private javax.swing.JLabel queryLbl;
     private javax.swing.JTextField queryTxt;
     private javax.swing.JMenuItem quitItem;
-    private javax.swing.JCheckBoxMenuItem readOnlyItem;
     private javax.swing.JMenu settingsMenu;
     private javax.swing.ButtonGroup yearGroup;
     private javax.swing.JMenu yearMenu;

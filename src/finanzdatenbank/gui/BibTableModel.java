@@ -9,13 +9,13 @@ public class BibTableModel extends DefaultTableModel {
 	
 	public static final int TITLE_COL = 0;
 	public static final int FIRST_MONTH_COL = 1;
-	public static final int SUM_COL = 13;
-	public static final int OTHER_COL = 14;
+	public static final int OTHER_COL = 13;
+	public static final int SUM_COL = 14;
 	public static final int ID_COL = 15;
 	
 	public BibTableModel(BibGUI2 gui) {
 		this.gui = gui;
-		addColumn("Rechnung");
+		addColumn(gui.getTableTitle());
 		addColumn("Januar");
 		addColumn("Februar");
 		addColumn("März");
@@ -28,8 +28,8 @@ public class BibTableModel extends DefaultTableModel {
 		addColumn("Oktober");
 		addColumn("November");
 		addColumn("Dezember");
-		addColumn("Summe");
 		addColumn("Nachzahlung/Gutschrift");
+		addColumn("Summe");
 		addColumn("ID");
 	}
 
@@ -45,7 +45,7 @@ public class BibTableModel extends DefaultTableModel {
 	}
 
 	public boolean isCellEditable(int rowIndex, int columnIndex) {
-		return !this.gui.isReadOnly() && columnIndex != ID_COL && columnIndex != SUM_COL && rowIndex != this.getRowCount()-1;
+		return columnIndex != ID_COL && columnIndex != SUM_COL && rowIndex != this.getRowCount()-1;
 	}
 	
 	public int getColumnPreferredWidth(int columnIndex) {
@@ -105,6 +105,10 @@ public class BibTableModel extends DefaultTableModel {
 			if (value != null) {
 				sum += value;
 			}
+		}
+		Integer value = (Integer) this.getValueAt(row, BibTableModel.OTHER_COL);
+		if (value != null) {
+			sum += value;
 		}
 		return sum;
 	}
